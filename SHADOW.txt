@@ -1,0 +1,100 @@
+shadow prebuilt repo: system-media (target)
+  upstream: system/media
+  api-level: 34 payload (branch 34-20261024)
+  blobs: org.blisslabs.ag.system.media.apex + org.blisslabs.ag.system.media.dev.apex
+    @ 14000001 (pkgver 14.0.0_r67-1; extracted; blobs deleted, not tracked)
+  recipe: apex/system-media @ 04b29df34cedcf6e98a7ac97d91595a8cea868ce (main,
+    local, NOT pushed - runner down); built with local makeapex in ag-build
+    (API=34 LEVEL=v3 makeapex -f -C -m, user builder, 2026-10-24; 11 build
+    iterations). makedepends ext-libbase (android-base headers from
+    /apex/org.blisslabs.ag.ext.libbase) + ext-server_configurable_flags
+    (payload extracted to /apex/org.blisslabs.ag.ext.server_configurable_flags,
+    libserver_configurable_flags.so linked). libspeexresampler linked from the
+    prebuilts/target/external/speex shadow. C++ dialect mirrors soong
+    build/soong/cc/config/global.go exactly: CppStdVersion gnu++20,
+    -Wno-vla-cxx-extension, -Wno-c99-designator, -Wno-error=deprecated-builtins,
+    -Wno-inconsistent-missing-override, -DNDEBUG, commonGlobalIncludes
+    system/media/audio/include. Build-env header staging (specific paths, never
+    aggregate /apex/include): /apex/include/log, /apex/include/cutils,
+    libutils headers + graphics{,-base,-base-v1.0/1.1/1.2,-sw} + thread_defs +
+    radio.h from the v34 vndk snapshot libsystem/libutils includes;
+    private/camera/include passed explicitly (tree-root-relative include_dirs
+    does not resolve from the checkout root).
+  aconfig: mutex.cpp (libaudioutils) includes the generated
+    com_android_media_audioserver.h (cc_aconfig_library whole_static
+    com.android.media.audioserver-aconfig-cc). AOSP v34 ground truth (vndk v34
+    snapshot libaudioutils.so) has ZERO audioserver aconfig symbols - vendor/VNDK
+    codegen inlines a default-value stub. Flag mutex_priority_inheritance has no
+    "value:" in audioserver.aconfig => default false. Recipe stages a
+    declaration header + stub TU returning false, archived to
+    libcom.android.media.audioserver-aconfig-cc.a and linked via
+    -Wl,--whole-archive exactly like the source whole_static_libs entry
+    (structure mirrors real codegen; behavior = aconfig default = v34 snapshot).
+  source pin: LineageOS-TV-x86/android_system_media lineage-21.0 @
+    849dbac0cff885ab3064a5b0ed1baf9c578677af (2025-04-27, "Increase period size
+    to improve USB Audio quality") = the EXACT los-21 checkout (byte-identical
+    by construction; los-21 manifest uses the los-tv-x86 remote). AOSP
+    android-14 tags not used: the los-tv-x86 fork carries TV/x86 patches on top
+    of the AOSP base. Non-34 API levels in the recipe fall back to mainline
+    LineageOS branches (apex/libfmq pattern).
+  scope: in-tree consumers only (los-21 grep 2026-10-25, word-boundary *.bp/*.mk,
+    excluding system/media itself + prebuilts/vndk snapshots):
+    libaudioutils(+_headers) <- frameworks/base/media/jni/soundpool,
+      soundpool/tests, audioeffect (shared); frameworks/av shadow
+      (35 shared / 12 static / 9 header contexts)
+    libaudioeffects          <- frameworks/av shadow (header_libs x18)
+    libaudio_system_headers  <- frameworks/native/libs/vibrator (header_libs),
+      frameworks/av shadow (x8)
+    libaudio_system_audio_base + _common_base <- frameworks/av shadow
+      services/audiopolicy/engineconfigurable/tools $(location :...) inputs
+    libaudiospdif            <- frameworks/av shadow (shared + static)
+    libfifo                  <- frameworks/av shadow (shared + static)
+    libsndfile               <- frameworks/av shadow (static x3)
+    libcamera_metadata       <- frameworks/base/core/jni (shared),
+      hardware/lineage/compat (shared), device/generic/goldfish/camera,
+      frameworks/hardware/interfaces/cameraservice/vts, frameworks/av +
+      hardware/lineage shadows (shared x11)
+    libradio_metadata        <- build/make/target/product/base_system.mk
+      PRODUCT_PACKAGES (system image packaging)
+  layout: flattened root (payload contents at repo root)
+  modules: libaudioutils (cc_prebuilt_library shared+static, vndk.enabled,
+    double_loadable, apex_available under static{} per source), libaudiospdif
+    (cc_prebuilt_library shared+static, no availability flags per source),
+    libfifo (cc_prebuilt_library_static, apex_available platform+media,
+    min_sdk 29), libsndfile (cc_prebuilt_library_static, no availability flags),
+    libcamera_metadata (cc_prebuilt_library shared+static, vendor+product,
+    native_bridge, vndk.enabled, double_loadable), libradio_metadata
+    (cc_prebuilt_library_shared, vendor_available, vndk.enabled),
+    cc_library_headers: libaudio_system_headers (vendor+product,
+    native_bridge, export_header_lib_headers libcutils_headers, min_sdk 29),
+    libaudioeffects (vendor_available, export_header_lib_headers
+    libhardware_headers), libaudioutils_headers (vendor+product, sdk_version 29);
+    filegroups: libaudio_system_audio_base, libaudio_system_audio_common_base.
+    prefer: true on all prebuilts.
+  dropped (no in-tree consumers outside system/media + vndk snapshots /
+    tests): libalsautils + libalsautilsv2 (alsa stack; CleanSpec.mk mention
+    only - avoids the alsa-lib target header dependency), libaudioroute +
+    libaudioroutev2 (zero references), internal whole-statics
+    libaudioutils_fastmath + libaudioutils_fixedfft (built as libaudioutils
+    deps, embedded in the .so/.a, no direct consumers, not shipped),
+    libcamera_metadata_asserts + libcamera_metadata_tags_file (helpers),
+    tests/fuzz/benchmarks: audio_utils tests x35, benchmarks x7, fuzz x9,
+    camera tests + fuzz, tests/ x3 (audio_aidl_utils_test,
+    EffectParamWrapper_tests, systemaudio_tests).
+  notes: DT_NEEDED of built .so mirrors source shared_libs exactly:
+    libaudioutils.so: libcutils/liblog/libutils/libserver_configurable_flags/
+    libspeexresampler (AOSP v34 vndk snapshot shows the same minus
+    libserver_configurable_flags - that snapshot predates the dep; the los-21
+    source lists it in shared_libs, zero symbol usage); libcamera_metadata.so:
+    liblog (exact); libradio_metadata.so + libaudiospdif.so: libcutils/liblog
+    (exact). libc++ runtime appears as libc++_shared.so (NDK naming; platform
+    soong uses libc++.so - batch-2 precedent). libaudioutils whole_statics:
+    libaudioutils_fastmath + libaudioutils_fixedfft embedded; aconfig lib
+    stubbed (see above). host_supported + recovery_available removed
+    (target-only prebuilt, chunk-A/B precedent); native_bridge_supported
+    mirrored where source has it (libaudio_system_headers, libaudioutils
+    none, libcamera_metadata). Dummies (_libdummy.so, libdummy_*) and
+    linker.config.json filtered. Dual-slice: no host companion expected;
+    no prebuilts_host_system-media exists or is needed (host consumers of
+    these headers/libs do not exist in-tree).
+  date: 2026-10-24
