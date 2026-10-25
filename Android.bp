@@ -72,6 +72,7 @@ cc_library_headers {
     name: "libaudio_system_headers",
     vendor_available: true,
     product_available: true,
+    host_supported: true,
     native_bridge_supported: true,
     export_header_lib_headers: ["libcutils_headers"],
     apex_available: [
@@ -89,6 +90,7 @@ cc_library_headers {
 cc_library_headers {
     name: "libaudioeffects",
     vendor_available: true,
+    host_supported: true,
     export_header_lib_headers: ["libhardware_headers"],
     export_include_dirs: [
         "include",
@@ -99,6 +101,7 @@ cc_library_headers {
     name: "libaudioutils_headers",
     vendor_available: true,
     product_available: true,
+    host_supported: true,
     sdk_version: "29",
     export_include_dirs: [
         "include",
@@ -109,6 +112,7 @@ cc_prebuilt_library {
     name: "libaudioutils",
     vendor_available: true,
     product_available: true,
+    host_supported: true,
     vndk: {
         enabled: true,
     },
