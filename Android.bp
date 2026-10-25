@@ -74,6 +74,7 @@ cc_library_headers {
     product_available: true,
     host_supported: true,
     native_bridge_supported: true,
+    header_libs: ["libcutils_headers"],
     export_header_lib_headers: ["libcutils_headers"],
     apex_available: [
         "//apex_available:platform",
@@ -91,6 +92,7 @@ cc_library_headers {
     name: "libaudioeffects",
     vendor_available: true,
     host_supported: true,
+    header_libs: ["libhardware_headers"],
     export_header_lib_headers: ["libhardware_headers"],
     export_include_dirs: [
         "include",
@@ -118,6 +120,10 @@ cc_prebuilt_library {
     },
     double_loadable: true,
     check_elf_files: false,
+    header_libs: [
+        "libaudio_system_headers",
+        "libutils_headers",
+    ],
     export_header_lib_headers: [
         "libaudio_system_headers",
         "libutils_headers",
@@ -189,6 +195,7 @@ cc_prebuilt_library {
     },
     double_loadable: true,
     check_elf_files: false,
+    header_libs: ["libcutils_headers"],
     export_header_lib_headers: ["libcutils_headers"],
     export_include_dirs: [
         "include",
@@ -209,6 +216,7 @@ cc_prebuilt_library_shared {
         enabled: true,
     },
     check_elf_files: false,
+    header_libs: ["libsystem_headers"],
     export_header_lib_headers: ["libsystem_headers"],
     export_include_dirs: [
         "include",
