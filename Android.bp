@@ -147,6 +147,7 @@ cc_prebuilt_library {
 
 cc_prebuilt_library {
     name: "libaudiospdif",
+    host_supported: true,
     check_elf_files: false,
     export_include_dirs: [
         "include",
@@ -162,6 +163,7 @@ cc_prebuilt_library {
 
 cc_prebuilt_library_static {
     name: "libfifo",
+    host_supported: true,
     check_elf_files: false,
     apex_available: [
         "//apex_available:platform",
@@ -177,6 +179,7 @@ cc_prebuilt_library_static {
 
 cc_prebuilt_library_static {
     name: "libsndfile",
+    host_supported: true,
     check_elf_files: false,
     export_include_dirs: [
         "include",
