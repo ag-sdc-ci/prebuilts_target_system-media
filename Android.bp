@@ -189,6 +189,7 @@ cc_prebuilt_library {
     name: "libcamera_metadata",
     vendor_available: true,
     product_available: true,
+    host_supported: true,
     native_bridge_supported: true,
     vndk: {
         enabled: true,
